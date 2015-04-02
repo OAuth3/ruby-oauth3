@@ -2,6 +2,6 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'oauth'
+gem 'oauth2'
 gem 'json'
 gem 'httpclient'
