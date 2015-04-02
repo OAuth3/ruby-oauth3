@@ -86,8 +86,6 @@ class Oauth3
 
   def get_profile(provider_uri, token)
     url = get_directive(provider_uri)['profile']['url']
-    puts "hello everybody!!!"
-    puts url
     OAuth2::AccessToken.new(get_oauth2_client(provider_uri), token).get(url)
   end
 
