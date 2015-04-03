@@ -18,11 +18,14 @@ require "oauth3"
 ```ruby
 # see appendix below for example Registrar
 registrar = Registrar.new('db.json')
-oauth3 = Oauth3.new(registrar, {
-  client_id: '55c7-test-bd03',
-  client_secret: '6b2fc4f5-test-8126-64e0-b9aa0ce9a50d'
-})
+oauth3 = Oauth3.new(registrar, {})
 ```
+
+## What about my client_id and client_secret?
+
+In the future your app will automatically register itself.
+
+For right now, you'd manually list them in `db.json`.
 
 ## Usage
 
