@@ -87,7 +87,7 @@ class Registrar
   def options
     return {
       allowed_ips: [],
-      allowed_domains: [ "local.ldsconnect.org", "local.lds.io" ]
+      allowed_domains: [ "example.com", "example.io" ]
     }
   end
 
