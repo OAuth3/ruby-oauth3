@@ -7,11 +7,11 @@ OAuth3 authentication strategy for connecting to any OAuth2 / OAuth3 provider in
 * doesn't require knowledge of implementation details
 * automatic registration (not yet implemented)
 
-```
+```bash
 gem install oauth3
 ```
 
-```
+```ruby
 require "oauth3"
 ```
 
@@ -29,7 +29,7 @@ For right now, you'd manually list them in `db.json`.
 
 ## Usage
 
-```
+```ruby
 provider_uri = "https://example.com"
 
 # changes example.com and http://example.com to https://example.com
