@@ -71,18 +71,21 @@ class Oauth3
       params: params
     }
 
-    # TODO state should go in params to the provider, not the redirect directly
-    # ... but ultimately it has the same effect, so whatever
     get_oauth2_client(provider_uri).auth_code.authorize_url({
       # TODO (change ? to & if there's already a ?)
-      redirect_uri: redirect_uri + "?state=" + rnd
+      # Note that server_state is just a backup in case the oauth2 provider
+      # hasn't implemented their server correctly
+      redirect_uri: redirect_uri + "?server_state=" + rnd,
+      scope: params[:scope],
+      state: rnd
     })
   end
 
   def authorization_code_callback(params)
     # TODO needs error handling function to make this DRY
 
-    if not params[:state]
+    server_state = params[:state] or params[:server_state]
+    if not server_state
       if params[:error]
         return params
       else
@@ -90,17 +93,17 @@ class Oauth3
       end
     end
 
-    original_state = @@oauth3.get_state(params[:state])
-    if not original_state
+    meta_state = @@oauth3.get_state(server_state)
+    if not meta_state
       return { error: "E_INVALID_SERVER_STATE", error_description: "server_state_missing_or_expired" }
     end
 
     # TODO provider_uri should not be necessary because we have state
     # (but I don't think oauth3.html implements that completely yet)
-    # original_state = { created_at, provider_uri, params }
-    browser_params = original_state[:params].merge({ provider_uri: original_state[:provider_uri] })
+    # meta_state = { created_at, provider_uri, params }
+    browser_params = meta_state[:params].merge({ provider_uri: meta_state[:provider_uri] })
     if not browser_params
-      browser_params = { error: "E_SANITY_FAIL", error_description: "sanity_fail_server_state_missing_params" }
+      browser_params = { error: "E_SANITY_FAIL", error_description: "sanity fail: server_state missing browser_params" }
       params.delete(:state)
       return params.merge(browser_params)
     end
@@ -108,7 +111,7 @@ class Oauth3
     browser_state = browser_params[:state] or browser_params[:browser_state]
     if not browser_state
       browser_params[:error] = "E_INVALID_BROWSER_STATE"
-      browser_params[:error_description] = "state_missing_or_expired"
+      browser_params[:error_description] = "server_state missing or expired"
       return browser_params
     end
 

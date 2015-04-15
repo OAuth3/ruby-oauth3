@@ -30,22 +30,34 @@ For right now, you'd manually list them in `db.json`.
 ## Usage
 
 ```ruby
-provider_uri = "https://example.com"
+provider_uri = "https://example.com" # i.e. facebook.com, twitter.com, - a service provider
 
 # changes example.com and http://example.com to https://example.com
 provider_uri = oauth3.normalize_provider_uri(provider_uri)
 
+#
 # fetches or returns from cache https://example.com/oauth3.json
+#
 oauth3.get_directive(provider_uri)
 
-# constructs authorize_url
-oauth3.authorize_url(provider_uri)
+#
+# constructs authorize_url and stores the browser parameters for later use
+#
+oauth3.authorize_url(provider_uri, params)
+# params = { browser_state:, scope: }
 
-# exchanges code for token
-oauth3.get_token(provider_uri, code).token
+#
+# exchanges code for token and produces proper success or error object
+#
+# params are the query parameters sent to you by the provider
+result = oauth3.authorization_code_callback(params)
+# result = { error:, error_description,
+#  access_token:, browser_state:, granted_scopes:, expires_at:, app_scoped_id:, ... }
 
+#
 # fetches profile with token
-oauth3.get_profile(provider_uri, token)
+#
+oauth3.get_profile(provider_uri, access_token)
 ```
 
 ## Example
