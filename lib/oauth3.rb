@@ -6,6 +6,14 @@ class Oauth3
   #attr_reader :client
   #attr_accessor :options
 
+  OAuth2::Response.register_parser(:text, 'text/plain') do |body|
+    if '{' == body[0] or '[' == body[0]
+      MultiJson.load(body) rescue body
+    else
+      Rack::Utils.parse_query(body)
+    end
+  end
+
   def initialize(registrar, options={})
     # make sure all options for the OAuth module and faraday
     # pass all the way down
@@ -25,14 +33,25 @@ class Oauth3
       return @providers[provider_uri][:directive]
     end
 
-    # TODO if there's no prefix (https://), add it first
-    # TODO if the directive is stale, refresh it
-    http = HTTPClient.new()
-    response = http.get_content("#{provider_uri}/oauth3.json")
+    registration = @registrar.get(provider_uri)
+    dynamic = true
+
+    if registration and registration['directives']
+      directives = registration['directives']
+      dynamic = false
+    else
+      # TODO if there's no prefix (https://), add it first
+      # TODO if the directive is stale, refresh it
+      http = HTTPClient.new()
+      response = http.get_content("#{provider_uri}/oauth3.json")
+      directives = JSON.parse(response)
+    end
+
     @providers[provider_uri] = {
       provider_uri: provider_uri,
-      directive: JSON.parse(response),
-      timestamp: Time.now
+      directive: directives,
+      timestamp: Time.now,
+      dynamic: dynamic
     }
     @providers[provider_uri][:directive]
   end
@@ -47,6 +66,13 @@ class Oauth3
     client_options[:site] = ""
     client_options[:authorize_url] = get_directive(provider_uri)['authorization_dialog']['url']
     client_options[:token_url] = get_directive(provider_uri)['access_token']['url']
+    token_method = (get_directive(provider_uri)['access_token']['method'] || 'POST').downcase.to_sym
+    puts ""
+    puts "token_method"
+    puts token_method
+    puts ""
+    puts ""
+    client_options[:token_method] = token_method
 
     @clients[provider_uri] = OAuth2::Client.new(
       @registrar.get(provider_uri)['id'],
@@ -62,7 +88,7 @@ class Oauth3
 
   def authorize_url(provider_uri, params)
     provider_uri = @@oauth3.normalize_provider_uri(provider_uri)
-    redirect_uri = @options[:redirect_uri]
+    authorization_code_callback_uri = @options[:authorization_code_callback_uri] || @options[:redirect_uri]
     rnd = random_string()
 
     @states[rnd] = {
@@ -72,10 +98,9 @@ class Oauth3
     }
 
     get_oauth2_client(provider_uri).auth_code.authorize_url({
-      # TODO (change ? to & if there's already a ?)
-      # Note that server_state is just a backup in case the oauth2 provider
-      # hasn't implemented their server correctly
-      redirect_uri: redirect_uri + "?server_state=" + rnd,
+      # Note that no parameters can be passed tothis redirect
+      # It is required to be verbatim for Facebook and probably many other providers
+      redirect_uri: authorization_code_callback_uri,
       scope: params[:scope],
       state: rnd
     })
@@ -154,7 +179,9 @@ class Oauth3
   end
 
   def get_token(provider_uri, code)
-    get_oauth2_client(provider_uri).auth_code.get_token(code)
+    get_oauth2_client(provider_uri).auth_code.get_token(code, {
+      redirect_uri: @options[:authorization_code_callback_uri]
+    })
   end
 
   def get_profile(provider_uri, token)

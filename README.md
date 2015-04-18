@@ -18,7 +18,9 @@ require "oauth3"
 ```ruby
 # see appendix below for example Registrar
 registrar = Registrar.new('db.json')
-oauth3 = Oauth3.new(registrar, {})
+oauth3 = Oauth3.new(registrar, {
+  authorization_code_callback_uri: 'https://myapp.com/api/oauth3/authorization_code_callback'
+})
 ```
 
 ## What about my client_id and client_secret?
