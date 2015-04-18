@@ -67,11 +67,6 @@ class Oauth3
     client_options[:authorize_url] = get_directive(provider_uri)['authorization_dialog']['url']
     client_options[:token_url] = get_directive(provider_uri)['access_token']['url']
     token_method = (get_directive(provider_uri)['access_token']['method'] || 'POST').downcase.to_sym
-    puts ""
-    puts "token_method"
-    puts token_method
-    puts ""
-    puts ""
     client_options[:token_method] = token_method
 
     @clients[provider_uri] = OAuth2::Client.new(
