@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = "oauth3"
-  s.version     = "1.1.1"
+  s.version     = "1.1.2"
   s.date        = "2015-04-18"
   s.description = "OAuth3 (backwards compatible with OAuth2) authentication strategy for connecting to any OAuth2 / OAuth3 provider in Ruby / Sinatra / etc"
   s.summary     = "OAuth3 (backwards compatible with OAuth2) authentication strategy for connecting to any OAuth2 / OAuth3 provider in Ruby / Sinatra / etc"
